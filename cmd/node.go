@@ -15,6 +15,9 @@
 package cmd
 
 import (
+	"io/ioutil"
+	"os"
+
 	"github.com/jbvmio/k8s"
 	"github.com/spf13/cobra"
 )
@@ -25,6 +28,16 @@ var nodeCmd = &cobra.Command{
 	Aliases: []string{"nodes"},
 	Short:   "WiP*",
 	Run: func(cmd *cobra.Command, args []string) {
+		if stdinAvailable() {
+			var kind string
+			in, err := ioutil.ReadAll(os.Stdin)
+			h(err)
+			kind, args = parseStdin(in)
+			switch kind {
+			case "PODNAME":
+				args = columnReturn(in, 5)[1:]
+			}
+		}
 		if len(args) == 0 {
 			args = []string{""}
 		}

@@ -1,11 +1,13 @@
 package cmd
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"os"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/olekukonko/tablewriter"
@@ -28,6 +30,8 @@ func formatTable(k interface{}) {
 	table.SetAlignment(tablewriter.ALIGN_LEFT)
 	table.SetBorder(false)
 	table.SetHeaderLine(false)
+	table.SetCenterSeparator("")
+	table.SetRowSeparator("")
 	table.SetColumnSeparator("")
 
 	switch k := k.(type) {
@@ -100,4 +104,55 @@ func sortSlice(sl interface{}) {
 			return sl[i].NodeName < sl[j].NodeName
 		})
 	}
+}
+
+func parseStdin(b []byte) (string, []string) {
+	bits := bytes.TrimSpace(b)
+	lines := string(bits)
+
+	var args []string
+	a := strings.Split(lines, "\n")
+	kindIn := strings.Fields(strings.TrimSpace(a[0]))[0]
+
+	for _, b := range a[1:] {
+		b := strings.TrimSpace(b)
+		c := cutField(b, 1)
+		args = append(args, c)
+	}
+
+	return kindIn, args
+}
+
+func returnHeaders(b []byte) []string {
+	bits := bytes.TrimSpace(b)
+	lines := string(bits)
+
+	a := strings.Split(lines, "\n")
+
+	h := strings.TrimSpace(a[0])
+	return strings.Fields(h)
+}
+
+func columnReturn(b []byte, n int) []string {
+	bits := bytes.TrimSpace(b)
+	lines := string(bits)
+
+	var col []string
+	a := strings.Split(lines, "\n")
+
+	for _, b := range a {
+		b := strings.TrimSpace(b)
+		c := cutField(b, n)
+		col = append(col, c)
+	}
+	return col
+}
+
+func cutField(s string, f int) string {
+	d := f - 1
+	fields := strings.Fields(s)
+	if len(fields) < f {
+		d = len(fields) - 1
+	}
+	return fields[d]
 }
