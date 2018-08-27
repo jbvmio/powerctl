@@ -43,42 +43,26 @@ var nodeCmd = &cobra.Command{
 		}
 		rc, err := k8s.NewRawClient(false)
 		h(err)
-		var results []k8s.Results
-		for _, nodes := range args {
-			p, err := rc.GetNodes(nodes)
-			h(err)
-			results = append(results, p)
-		}
+		results, err := rc.GetNodes(args[:]...)
+		h(err)
 		var nodes []Node
-		var count int
 		nodeChan := make(chan Node, 100)
-		for _, r := range results {
-			for _, x := range r.XData {
-				go makeNodes(x, nodeChan)
-			}
-			count = count + len(r.XData)
+		for _, x := range results.XData {
+			go makeNodes(x, nodeChan)
 		}
-		for i := 0; i < count; i++ {
+		for i := 0; i < len(results.XData); i++ {
 			node := <-nodeChan
 			nodes = append(nodes, node)
 		}
 		sortSlice(nodes)
 		formatTable(nodes)
 		return
-
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(nodeCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
 	// nodeCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
 	// nodeCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
