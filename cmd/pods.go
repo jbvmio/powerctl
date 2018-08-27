@@ -17,6 +17,29 @@ type Pod struct {
 	Age      string
 }
 
+func getAllPods() k8s.Results {
+	rc, err := k8s.NewRawClient(false)
+	h(err)
+	rc.SetNS(targetNamespace)
+	results, err := rc.GetPods("")
+	h(err)
+	return results
+}
+
+func makePrintPods(xdata []k8s.XD) {
+	var pods []Pod
+	podChan := make(chan Pod, 100)
+	for _, x := range xdata {
+		go makePods(x, podChan)
+	}
+	for i := 0; i < len(xdata); i++ {
+		pod := <-podChan
+		pods = append(pods, pod)
+	}
+	sortSlice(pods)
+	formatTable(pods)
+}
+
 func getPodStatus(cs *k8s.Status) (string, string) {
 	var status = cs.Phase
 	var message = "PodScheduled"
@@ -64,12 +87,3 @@ func makePods(x k8s.XD, podChan chan Pod) {
 	podChan <- pod
 
 }
-
-// Backup
-/*
-	defer func() {
-		if r := recover(); r != nil {
-
-		}
-	}
-*/

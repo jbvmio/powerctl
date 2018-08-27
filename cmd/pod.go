@@ -35,7 +35,16 @@ var podCmd = &cobra.Command{
 			kind, args = parseStdin(in)
 			switch kind {
 			case "NODENAME":
-				stdInDetected = true
+				var xdata []k8s.XD
+				allPods := getAllPods()
+				for _, pod := range allPods.XData {
+					for _, node := range args {
+						if pod.NodeName == node {
+							xdata = append(xdata, pod)
+						}
+					}
+				}
+				makePrintPods(xdata)
 				return
 			}
 		}
@@ -47,17 +56,7 @@ var podCmd = &cobra.Command{
 		rc.SetNS(targetNamespace)
 		results, err := rc.GetPods(args[:]...)
 		h(err)
-		var pods []Pod
-		podChan := make(chan Pod, 100)
-		for _, x := range results.XData {
-			go makePods(x, podChan)
-		}
-		for i := 0; i < len(results.XData); i++ {
-			pod := <-podChan
-			pods = append(pods, pod)
-		}
-		sortSlice(pods)
-		formatTable(pods)
+		makePrintPods(results.XData)
 		return
 	},
 }
@@ -65,13 +64,6 @@ var podCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(podCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
 	// podCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
 	// podCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
