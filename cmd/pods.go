@@ -23,7 +23,12 @@ func getPodStatus(cs *k8s.Status) (string, string) {
 	if status != "Succeeded" {
 		for _, c := range cs.ContainerStatuses {
 			if !c.Ready {
-				status = c.Reason
+				if c.Terminated != nil {
+					status = c.Terminated.Reason
+				}
+				if c.Waiting != nil {
+					status = c.Waiting.Reason
+				}
 			}
 		}
 	}

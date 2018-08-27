@@ -35,7 +35,7 @@ var nodeCmd = &cobra.Command{
 			kind, args = parseStdin(in)
 			switch kind {
 			case "PODNAME":
-				args = columnReturn(in, 5)[1:]
+				args = filterUnique(columnReturn(in, 5)[1:])
 			}
 		}
 		if len(args) == 0 {

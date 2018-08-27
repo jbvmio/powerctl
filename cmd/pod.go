@@ -45,23 +45,14 @@ var podCmd = &cobra.Command{
 		rc, err := k8s.NewRawClient(false)
 		h(err)
 		rc.SetNS(targetNamespace)
-
-		var results []k8s.Results
-		for _, pods := range args {
-			p, err := rc.GetPods(pods)
-			h(err)
-			results = append(results, p)
-		}
+		results, err := rc.GetPods(args[:]...)
+		h(err)
 		var pods []Pod
-		var count int
 		podChan := make(chan Pod, 100)
-		for _, r := range results {
-			for _, x := range r.XData {
-				go makePods(x, podChan)
-			}
-			count = count + len(r.XData)
+		for _, x := range results.XData {
+			go makePods(x, podChan)
 		}
-		for i := 0; i < count; i++ {
+		for i := 0; i < len(results.XData); i++ {
 			pod := <-podChan
 			pods = append(pods, pod)
 		}
