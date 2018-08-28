@@ -15,6 +15,7 @@
 package cmd
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 
@@ -34,6 +35,9 @@ var nodeCmd = &cobra.Command{
 			h(err)
 			kind, args = parseStdin(in)
 			switch kind {
+			case "NoResultsFound":
+				fmt.Println("NoResultsFound")
+				os.Exit(1)
 			case "PODNAME":
 				args = filterUnique(columnReturn(in, 5)[1:])
 			}
@@ -45,17 +49,8 @@ var nodeCmd = &cobra.Command{
 		h(err)
 		results, err := rc.GetNodes(args[:]...)
 		h(err)
-		var nodes []Node
-		nodeChan := make(chan Node, 100)
-		for _, x := range results.XData {
-			go makeNodes(x, nodeChan)
-		}
-		for i := 0; i < len(results.XData); i++ {
-			node := <-nodeChan
-			nodes = append(nodes, node)
-		}
-		sortSlice(nodes)
-		formatTable(nodes)
+		validateResults(results)
+		makePrintNodes(results.XData)
 		return
 	},
 }

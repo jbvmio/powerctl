@@ -46,7 +46,10 @@ var getCmd = &cobra.Command{
 			nodeCmd.Run(cmd, getArgs)
 			return
 		}
-
+		if strings.Contains(getTarget, "rs") || strings.Contains(getTarget, "replicaset") || strings.Contains(getTarget, "replica") {
+			rsCmd.Run(cmd, getArgs)
+			return
+		}
 		// Leave to ensure return statements exist
 		fmt.Println("GET DONE")
 	},

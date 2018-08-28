@@ -26,6 +26,44 @@ func getAllPods() k8s.Results {
 	return results
 }
 
+func searchPods(search []string) k8s.Results {
+	rc, err := k8s.NewRawClient(false)
+	h(err)
+	rc.SetNS(targetNamespace)
+	results, err := rc.GetPods(search[:]...)
+	h(err)
+	return results
+}
+
+func nodesToPods(args []string) []k8s.XD {
+	var xdata []k8s.XD
+	allPods := getAllPods()
+	for _, pod := range allPods.XData {
+		for _, node := range args {
+			if pod.NodeName == node {
+				xdata = append(xdata, pod)
+			}
+		}
+	}
+	return xdata
+}
+
+func rsToPods(args []string) []k8s.XD {
+	var xdata []k8s.XD
+	allPods := getAllPods()
+	for _, pod := range allPods.XData {
+		for _, rs := range args {
+			for _, p := range pod.OwnerReferences {
+				if p.OwnerName == rs {
+					xdata = append(xdata, pod)
+				}
+			}
+
+		}
+	}
+	return xdata
+}
+
 func makePrintPods(xdata []k8s.XD) {
 	var pods []Pod
 	podChan := make(chan Pod, 100)

@@ -59,3 +59,17 @@ func getNodeStatus(cs *k8s.Status) (string, string, string, string) {
 	}
 	return status, message, ip, hostname
 }
+
+func makePrintNodes(xdata []k8s.XD) {
+	var nodes []Node
+	nodeChan := make(chan Node, 100)
+	for _, x := range xdata {
+		go makeNodes(x, nodeChan)
+	}
+	for i := 0; i < len(xdata); i++ {
+		node := <-nodeChan
+		nodes = append(nodes, node)
+	}
+	sortSlice(nodes)
+	formatTable(nodes)
+}

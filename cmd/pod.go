@@ -15,6 +15,7 @@
 package cmd
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 
@@ -34,17 +35,14 @@ var podCmd = &cobra.Command{
 			h(err)
 			kind, args = parseStdin(in)
 			switch kind {
+			case "NoResultsFound":
+				fmt.Println("NoResultsFound")
+				os.Exit(1)
 			case "NODENAME":
-				var xdata []k8s.XD
-				allPods := getAllPods()
-				for _, pod := range allPods.XData {
-					for _, node := range args {
-						if pod.NodeName == node {
-							xdata = append(xdata, pod)
-						}
-					}
-				}
-				makePrintPods(xdata)
+				makePrintPods(nodesToPods(args))
+				return
+			case "REPLICASET":
+				makePrintPods(rsToPods(args))
 				return
 			}
 		}
@@ -56,6 +54,7 @@ var podCmd = &cobra.Command{
 		rc.SetNS(targetNamespace)
 		results, err := rc.GetPods(args[:]...)
 		h(err)
+		validateResults(results)
 		makePrintPods(results.XData)
 		return
 	},

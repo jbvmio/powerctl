@@ -10,12 +10,24 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jbvmio/k8s"
+
 	"github.com/olekukonko/tablewriter"
 )
 
 func h(err error) {
 	if err != nil {
 		log.Fatalf("ERROR: %v\n", err)
+	}
+}
+
+func validateResults(obj interface{}) {
+	switch obj := obj.(type) {
+	case k8s.Results:
+		if len(obj.XData) < 1 {
+			fmt.Println("NoResultsFound")
+			os.Exit(1)
+		}
 	}
 }
 
@@ -45,6 +57,12 @@ func formatTable(k interface{}) {
 		table.SetHeader([]string{"NodeName", "Status", "InternalIP", "Version", "Kernel", "Message", "Age"})
 		for _, v := range k {
 			k := []string{v.NodeName, truncateString(v.Status, 20), v.InternalIP, v.KubeletVersion, v.KernelVersion, v.Message, v.Age}
+			table.Append(k)
+		}
+	case []ReplicaSet:
+		table.SetHeader([]string{"ReplicaSet", "Desired", "Deployed", "Available", "Ready", "Age"})
+		for _, v := range k {
+			k := []string{v.ReplicaSet, strconv.Itoa(v.Desired), strconv.Itoa(v.Deployed), strconv.Itoa(v.Available), strconv.Itoa(v.Ready), v.Age}
 			table.Append(k)
 		}
 	}

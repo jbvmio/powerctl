@@ -16,29 +16,50 @@ package cmd
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
 
+	"github.com/jbvmio/k8s"
 	"github.com/spf13/cobra"
 )
 
 // rsCmd represents the rs command
 var rsCmd = &cobra.Command{
-	Use:   "rs",
-	Short: "WiP*",
+	Use:     "rs",
+	Short:   "WiP*",
+	Aliases: []string{"replica", "replicaset"},
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("rs called")
+		if stdinAvailable() {
+			var kind string
+			in, err := ioutil.ReadAll(os.Stdin)
+			h(err)
+			kind, args = parseStdin(in)
+			switch kind {
+			case "NoResultsFound":
+				fmt.Println("NoResultsFound")
+				os.Exit(1)
+			case "PODNAME":
+				makePrintRS(podsToRS(args))
+				return
+			}
+		}
+		if len(args) == 0 {
+			args = []string{""}
+		}
+		rc, err := k8s.NewRawClient(false)
+		h(err)
+		rc.SetNS(targetNamespace)
+		results, err := rc.GetRS(args[:]...)
+		h(err)
+		validateResults(results)
+		makePrintRS(results.XData)
+		return
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(rsCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
 	// rsCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
 	// rsCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
