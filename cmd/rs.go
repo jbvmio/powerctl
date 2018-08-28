@@ -41,6 +41,9 @@ var rsCmd = &cobra.Command{
 			case "PODNAME":
 				makePrintRS(podsToRS(args))
 				return
+			case "DEPLOYMENT":
+				makePrintRS(deploysToRS(args))
+				return
 			default:
 				fmt.Println("NoResultsFound")
 				os.Exit(1)
