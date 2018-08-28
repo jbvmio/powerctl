@@ -41,6 +41,9 @@ var rsCmd = &cobra.Command{
 			case "PODNAME":
 				makePrintRS(podsToRS(args))
 				return
+			default:
+				fmt.Println("NoResultsFound")
+				os.Exit(1)
 			}
 		}
 		if len(args) == 0 {

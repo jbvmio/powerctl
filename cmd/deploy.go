@@ -49,6 +49,9 @@ var deployCmd = &cobra.Command{
 				}
 				makePrintDeploys(rsToDeployments(filterUnique(replicasetNames)))
 				return
+			default:
+				fmt.Println("NoResultsFound")
+				os.Exit(1)
 			}
 		}
 		if len(args) == 0 {

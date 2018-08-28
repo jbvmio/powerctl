@@ -47,6 +47,22 @@ func podsToRS(args []string) []k8s.XD {
 	return xdata
 }
 
+func deploysToRS(args []string) []k8s.XD {
+	var xdata []k8s.XD
+	allRS := getAllRS()
+	for _, replicaset := range allRS.XData {
+		for _, deployment := range args {
+			for _, r := range replicaset.OwnerReferences {
+				if r.OwnerName == deployment {
+					xdata = append(xdata, replicaset)
+				}
+			}
+
+		}
+	}
+	return xdata
+}
+
 func makePrintRS(xdata []k8s.XD) {
 	var rs []ReplicaSet
 	rsChan := make(chan ReplicaSet, 100)

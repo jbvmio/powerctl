@@ -40,6 +40,9 @@ var nodeCmd = &cobra.Command{
 				os.Exit(1)
 			case "PODNAME":
 				args = filterUnique(columnReturn(in, 5)[1:])
+			default:
+				fmt.Println("NoResultsFound")
+				os.Exit(1)
 			}
 		}
 		if len(args) == 0 {

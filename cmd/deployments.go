@@ -15,6 +15,15 @@ type Deployment struct {
 	Age        string
 }
 
+func getAllDeploys() k8s.Results {
+	rc, err := k8s.NewRawClient(false)
+	h(err)
+	rc.SetNS(targetNamespace)
+	results, err := rc.GetDeployments("")
+	h(err)
+	return results
+}
+
 func makePrintDeploys(xdata []k8s.XD) {
 	var deployment []Deployment
 	deployChan := make(chan Deployment, 100)
@@ -52,13 +61,22 @@ func searchDeploys(args []string) k8s.Results {
 
 func rsToDeployments(args []string) []k8s.XD {
 	var xdata []k8s.XD
+	var uids []string
 	var deployNames []string
 	replicaset := searchRS(args)
 	for _, rs := range replicaset.XData {
 		for _, dep := range rs.OwnerReferences {
 			deployNames = append(deployNames, dep.OwnerName)
+			uids = append(uids, dep.OwnerUID)
 		}
 	}
-	xdata = searchDeploys(filterUnique(deployNames)).XData
+	xd := searchDeploys(filterUnique(deployNames)).XData
+	for _, x := range xd {
+		for _, uid := range uids {
+			if x.UID == uid {
+				xdata = append(xdata, x)
+			}
+		}
+	}
 	return xdata
 }

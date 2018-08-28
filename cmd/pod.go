@@ -44,6 +44,9 @@ var podCmd = &cobra.Command{
 			case "REPLICASET":
 				makePrintPods(rsToPods(args))
 				return
+			default:
+				fmt.Println("NoResultsFound")
+				os.Exit(1)
 			}
 		}
 		if len(args) == 0 {
