@@ -43,7 +43,7 @@ func podsToRS(args []string) []k8s.XD {
 			rsNames = append(rsNames, rs.OwnerName)
 		}
 	}
-	xdata = searchRS(rsNames).XData
+	xdata = searchRS(filterUnique(rsNames)).XData
 	return xdata
 }
 
