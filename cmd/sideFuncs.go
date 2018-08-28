@@ -65,6 +65,12 @@ func formatTable(k interface{}) {
 			k := []string{v.ReplicaSet, strconv.Itoa(v.Desired), strconv.Itoa(v.Deployed), strconv.Itoa(v.Available), strconv.Itoa(v.Ready), v.Age}
 			table.Append(k)
 		}
+	case []Deployment:
+		table.SetHeader([]string{"Deployment", "Desired", "Deployed", "Ready", "Age"})
+		for _, v := range k {
+			k := []string{v.Deployment, strconv.Itoa(v.Desired), strconv.Itoa(v.Deployed), strconv.Itoa(v.Ready), v.Age}
+			table.Append(k)
+		}
 	}
 	fmt.Println()
 	table.Render()
@@ -120,6 +126,14 @@ func sortSlice(sl interface{}) {
 	case []Node:
 		sort.Slice(sl, func(i, j int) bool {
 			return sl[i].NodeName < sl[j].NodeName
+		})
+	case []ReplicaSet:
+		sort.Slice(sl, func(i, j int) bool {
+			return sl[i].ReplicaSet < sl[j].ReplicaSet
+		})
+	case []Deployment:
+		sort.Slice(sl, func(i, j int) bool {
+			return sl[i].Deployment < sl[j].Deployment
 		})
 	}
 }

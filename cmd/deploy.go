@@ -16,29 +16,58 @@ package cmd
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
 
+	"github.com/jbvmio/k8s"
 	"github.com/spf13/cobra"
 )
 
 // deployCmd represents the deploy command
 var deployCmd = &cobra.Command{
-	Use:   "deploy",
-	Short: "WiP*",
+	Use:     "deploy",
+	Short:   "WiP*",
+	Aliases: []string{"deployment", "dep"},
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("deploy called")
+		if stdinAvailable() {
+			var kind string
+			in, err := ioutil.ReadAll(os.Stdin)
+			h(err)
+			kind, args = parseStdin(in)
+			switch kind {
+			case "NoResultsFound":
+				fmt.Println("NoResultsFound")
+				os.Exit(1)
+			case "REPLICASET":
+				makePrintDeploys(rsToDeployments(args))
+				return
+			case "PODNAME":
+				var replicasetNames []string
+				rs := podsToRS(args)
+				for _, r := range rs {
+					replicasetNames = append(replicasetNames, r.Name)
+				}
+				makePrintDeploys(rsToDeployments(filterUnique(replicasetNames)))
+				return
+			}
+		}
+		if len(args) == 0 {
+			args = []string{""}
+		}
+		rc, err := k8s.NewRawClient(false)
+		h(err)
+		rc.SetNS(targetNamespace)
+		results, err := rc.GetDeployments(args[:]...)
+		h(err)
+		validateResults(results)
+		makePrintDeploys(results.XData)
+		return
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(deployCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
 	// deployCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
 	// deployCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
