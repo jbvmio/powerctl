@@ -44,6 +44,14 @@ var podCmd = &cobra.Command{
 			case "REPLICASET":
 				makePrintPods(rsToPods(args))
 				return
+			case "DEPLOYMENT":
+				var replicasetNames []string
+				rs := deploysToRS(args)
+				for _, r := range rs {
+					replicasetNames = append(replicasetNames, r.Name)
+				}
+				makePrintPods(rsToPods(filterUnique(replicasetNames)))
+				return
 			default:
 				fmt.Println("NoResultsFound")
 				os.Exit(1)
@@ -55,6 +63,7 @@ var podCmd = &cobra.Command{
 		rc, err := k8s.NewRawClient(false)
 		h(err)
 		rc.SetNS(targetNamespace)
+		rc.ExactMatches(exactMatches)
 		results, err := rc.GetPods(args[:]...)
 		h(err)
 		validateResults(results)

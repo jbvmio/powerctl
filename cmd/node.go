@@ -42,6 +42,7 @@ var nodeCmd = &cobra.Command{
 				args = filterUnique(columnReturn(in, 5)[1:])
 			default:
 				fmt.Println("NoResultsFound")
+				fmt.Println(" ", kind, "->", "NODES")
 				os.Exit(1)
 			}
 		}
@@ -50,6 +51,7 @@ var nodeCmd = &cobra.Command{
 		}
 		rc, err := k8s.NewRawClient(false)
 		h(err)
+		rc.ExactMatches(exactMatches)
 		results, err := rc.GetNodes(args[:]...)
 		h(err)
 		validateResults(results)

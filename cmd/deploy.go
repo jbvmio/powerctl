@@ -60,6 +60,7 @@ var deployCmd = &cobra.Command{
 		rc, err := k8s.NewRawClient(false)
 		h(err)
 		rc.SetNS(targetNamespace)
+		rc.ExactMatches(exactMatches)
 		results, err := rc.GetDeployments(args[:]...)
 		h(err)
 		validateResults(results)

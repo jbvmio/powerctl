@@ -26,10 +26,11 @@ func getAllPods() k8s.Results {
 	return results
 }
 
-func searchPods(search []string) k8s.Results {
+func searchPods(search []string, exact bool) k8s.Results {
 	rc, err := k8s.NewRawClient(false)
 	h(err)
 	rc.SetNS(targetNamespace)
+	rc.ExactMatches(exact)
 	results, err := rc.GetPods(search[:]...)
 	h(err)
 	return results

@@ -25,10 +25,11 @@ func getAllRS() k8s.Results {
 	return results
 }
 
-func searchRS(args []string) k8s.Results {
+func searchRS(args []string, exact bool) k8s.Results {
 	rc, err := k8s.NewRawClient(false)
 	h(err)
 	rc.SetNS(targetNamespace)
+	rc.ExactMatches(exact)
 	results, err := rc.GetRS(args[:]...)
 	h(err)
 	return results
@@ -37,13 +38,13 @@ func searchRS(args []string) k8s.Results {
 func podsToRS(args []string) []k8s.XD {
 	var xdata []k8s.XD
 	var rsNames []string
-	pods := searchPods(args)
+	pods := searchPods(args, true)
 	for _, pod := range pods.XData {
 		for _, rs := range pod.OwnerReferences {
 			rsNames = append(rsNames, rs.OwnerName)
 		}
 	}
-	xdata = searchRS(filterUnique(rsNames)).XData
+	xdata = searchRS(filterUnique(rsNames), true).XData
 	return xdata
 }
 
@@ -57,7 +58,6 @@ func deploysToRS(args []string) []k8s.XD {
 					xdata = append(xdata, replicaset)
 				}
 			}
-
 		}
 	}
 	return xdata

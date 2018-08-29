@@ -50,15 +50,30 @@ func makeDeployment(x k8s.XD, deployChan chan Deployment) {
 	deployChan <- deploy
 }
 
-func searchDeploys(args []string) k8s.Results {
+func searchDeploys(args []string, exact bool) k8s.Results {
 	rc, err := k8s.NewRawClient(false)
 	h(err)
 	rc.SetNS(targetNamespace)
+	rc.ExactMatches(exact)
 	results, err := rc.GetDeployments(args[:]...)
 	h(err)
 	return results
 }
 
+func rsToDeployments(args []string) []k8s.XD {
+	var xdata []k8s.XD
+	var deployNames []string
+	replicaset := searchRS(args, true)
+	for _, rs := range replicaset.XData {
+		for _, dep := range rs.OwnerReferences {
+			deployNames = append(deployNames, dep.OwnerName)
+		}
+	}
+	xdata = searchDeploys(filterUnique(deployNames), true).XData
+	return xdata
+}
+
+/*
 func rsToDeployments(args []string) []k8s.XD {
 	var xdata []k8s.XD
 	var uids []string
@@ -80,3 +95,4 @@ func rsToDeployments(args []string) []k8s.XD {
 	}
 	return xdata
 }
+*/

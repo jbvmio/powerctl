@@ -26,8 +26,7 @@ import (
 var (
 	cfgFile         string
 	targetNamespace string
-	stdInDetected   bool
-	stdInSource     string
+	exactMatches    bool
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -50,6 +49,7 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVarP(&targetNamespace, "namespace", "n", "", "namespace")
+	rootCmd.PersistentFlags().BoolVarP(&exactMatches, "exact", "x", false, "return exact matches")
 	//rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.powerctl.yaml)")
 	//rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 

@@ -55,6 +55,7 @@ var rsCmd = &cobra.Command{
 		rc, err := k8s.NewRawClient(false)
 		h(err)
 		rc.SetNS(targetNamespace)
+		rc.ExactMatches(exactMatches)
 		results, err := rc.GetRS(args[:]...)
 		h(err)
 		validateResults(results)
