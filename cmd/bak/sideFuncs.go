@@ -45,7 +45,6 @@ func formatTable(k interface{}) {
 	table.SetCenterSeparator("")
 	table.SetRowSeparator("")
 	table.SetColumnSeparator("")
-
 	switch k := k.(type) {
 	case []Pod:
 		table.SetHeader([]string{"PodName", "Status", "Restarts", "PodIP", "NodeName", "Message", "Age"})

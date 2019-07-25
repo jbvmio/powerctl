@@ -51,6 +51,11 @@ func getNodeStatus(cs *k8s.Status) (string, string, string, string) {
 	for _, c := range cs.Conditions {
 		message = c.Reason
 		status = c.Type
+		if c.Status == "Unknown" {
+			message = c.Reason
+			status = c.Status
+			return status, message, ip, hostname
+		}
 		if c.Status == "True" {
 			message = c.Reason
 			status = c.Type

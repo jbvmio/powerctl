@@ -18,31 +18,23 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jbvmio/ak8s"
-	"github.com/jbvmio/powerctl/cmd/kube"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
 var (
-	errd error
+	cfgFile         string
+	targetNamespace string
+	exactMatches    bool
 )
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "powerctl",
 	Short: "WiP*",
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		kube.Client, errd = ak8s.NewClientFromConfig(kube.CFG)
-		if errd != nil {
-			fmt.Println(errd)
-			os.Exit(1)
-		}
-	},
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("ROOT")
-	},
+
+	//	Run: func(cmd *cobra.Command, args []string) { },
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -56,46 +48,35 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-	rootCmd.PersistentFlags().StringVarP(&kube.NS, "namespace", "n", "", "namespace")
-	//rootCmd.PersistentFlags().BoolVarP(&exactMatches, "exact", "x", false, "return exact matches")
-	//rootCmd.PersistentFlags().StringVar(&CFG, "config", "", "config file (default is $HOME/.powerctl.yaml)")
+	rootCmd.PersistentFlags().StringVarP(&targetNamespace, "namespace", "n", "", "namespace")
+	rootCmd.PersistentFlags().BoolVarP(&exactMatches, "exact", "x", false, "return exact matches")
+	//rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.powerctl.yaml)")
 	//rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
-	rootCmd.AddCommand(cmdGet)
 }
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-	if kube.CFG != "" {
-		viper.SetConfigFile(kube.CFG)
+	if cfgFile != "" {
+		// Use config file from the flag.
+		viper.SetConfigFile(cfgFile)
 	} else {
-		// Look for existing kube/config in default location.
+		// Find home directory.
 		home, err := homedir.Dir()
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
-		switch {
-		case fileExists(home + `/.powerctl.yaml`):
-			viper.AddConfigPath(home)
-			viper.SetConfigName(".powerctl")
-		case fileExists(home + `/.kube/config`):
-			err := copyKubeConfig(home+`/.kube/config`, home+`/.powerctl.yaml`)
-			if err != nil {
-				fmt.Println(err)
-				os.Exit(1)
-			}
-			viper.AddConfigPath(home)
-			viper.SetConfigName(".powerctl")
-		default:
-			fmt.Println("Error: No config file specified or located.")
-			os.Exit(1)
-		}
-		kube.CFG = home + `/.powerctl.yaml`
+
+		// Search config in home directory with name ".powerctl" (without extension).
+		viper.AddConfigPath(home)
+		viper.SetConfigName(".powerctl")
 	}
+
 	viper.AutomaticEnv() // read in environment variables that match
+
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
-		//fmt.Println("Using config file:", viper.ConfigFileUsed())
+		fmt.Println("Using config file:", viper.ConfigFileUsed())
 	}
 }
